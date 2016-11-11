@@ -19,9 +19,11 @@ except ImportError:
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/admin-directory_v1-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/admin.directory.user'
+SCOPES = ['https://www.googleapis.com/auth/admin.directory.user',
+          'https://www.googleapis.com/auth/admin.directory.group']
+
 CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Directory API Python Quickstart'
+APPLICATION_NAME = 'Onboard'
 
 SLACK_TOKEN = os.environ['SLACK_TOKEN']
 TRELLO_TOKEN = os.environ['TRELLO_TOKEN']
@@ -41,12 +43,8 @@ def get_credentials():
     Returns:
         Credentials, the obtained credential.
     """
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'admin-directory_v1-python-quickstart.json')
+    credential_path = os.path.join(os.getcwd(),
+                                   'onboard-google-creds.json')
 
     store = Storage(credential_path)
     credentials = store.get()
@@ -61,30 +59,69 @@ def get_credentials():
     return credentials
 
 
-def create_google_user(first_name, last_name, temporary_password):
+def create_google_user(service, first_name, last_name, temporary_password):
     print('Creating user in Google Apps')
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('admin', 'directory_v1', http=http)
-
-    primary_email = first_name.lower() + "." + last_name.lower()
-    + '@connected-ventures.com'
+    primary_email = '%s.%s@connected-ventures.com' % (
+                    first_name.lower(),
+                    last_name.lower())
 
     user_json = {
-        "primaryEmail": primary_email,
-        "name": {
-          "givenName": first_name,
-          "fullName": first_name + " " + last_name,
-          "familyName": last_name,
+        'primaryEmail': primary_email,
+        'name': {
+          'givenName': first_name,
+          'fullName': first_name + ' ' + last_name,
+          'familyName': last_name,
         },
-        "password": temporary_password,
-        "changePasswordAtNextLogin": True
+        'password': temporary_password,
+        'changePasswordAtNextLogin': True
       }
 
     results = service.users().insert(body=user_json).execute()
     print(results)
 
-    return primary_email
+    return results
+
+
+def add_to_google_groups(service, google_user):
+    print('Fetching Google groups')
+    results = service.groups().list(customer='my_customer',
+                                    maxResults=200).execute()
+
+    group_ids = []
+
+    print()
+    for index, group in enumerate(results['groups']):
+        group_ids.append(group)
+        print('    ', index, group['name'])
+
+    add_to_groups = []
+    msg = 'Enter an ID to add the user to the group, or blank for no groups: '
+    groups = input(msg)
+    while groups != '':
+        add_to_groups.append(group_ids[int(groups)])
+        groups = input('Added, another?: ')
+
+    print()
+    msg = 'You have chosen to add the user to the following groups:\n'
+    confirm_message = msg
+    for index, group in enumerate(add_to_groups):
+        confirm_message = confirm_message + '    ' + group['name'] + '\n'
+    confirm_message = confirm_message + 'Is this correct? (y/n): '
+
+    confirm = input(confirm_message)
+
+    print()
+    if (confirm == 'y'):
+        for group in add_to_groups:
+            print('Adding to %s' % group['name'])
+
+            body = {
+                'kind': 'admin#directory#member',
+                'id': google_user['id'],
+                }
+
+            service.members().insert(groupKey=group['id'],
+                                     body=body).execute()
 
 
 def invite_to_slack(first_name, last_name, email_address):
@@ -149,6 +186,9 @@ def main():
         temporary_password = input('Enter temporary password: ')
         temporary_password = temporary_password.strip()
 
+        do_google_groups = input('Invite new user to Google groups (y/n): ')
+        do_slack = input('Invite new user to Slack (y/n): ')
+
     do_github = input('Add Github account to org (y/n): ')
     if (do_github == 'y'):
         github_username = input('Enter employee Github username: ')
@@ -165,12 +205,21 @@ def main():
             temporary_password != '' and
             do_gmail == 'y'):
 
-        email_address = create_google_user(
+        credentials = get_credentials()
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('admin', 'directory_v1', http=http)
+
+        google_user = create_google_user(
+                                            service,
                                             first_name,
                                             last_name,
                                             temporary_password)
 
-        invite_to_slack(first_name, last_name, email_address)
+        if (do_google_groups == 'y'):
+            add_to_google_groups(service, google_user)
+
+        if (do_slack == 'y'):
+            invite_to_slack(first_name, last_name, google_user['primaryEmail'])
 
     if (github_username != '' and do_github == 'y'):
         invite_to_github_org(github_username)
