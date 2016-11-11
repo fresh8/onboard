@@ -21,6 +21,11 @@ TRELLO_ORG - The Trello organisation you wish to add users to
 GITHUB_USER - An organisation admin that can be used for inviting the user to the Github org
 GITHUB_KEY - An access key from Github to allow use of the API
 GITHUB_ORG - The Github organisation you wish to add users to
+
+// Required for Jira
+JIRA_USER - The username of an administrator for your Jira Server
+JIRA_PASSWORD - The password of the above user
+JIRA_URL - URL to your Jira Server (including scheme)
 ```
 
 Once set up, you can just run the following:
