@@ -62,11 +62,6 @@ def get_credentials():
 
 
 def create_google_user(first_name, last_name, temporary_password):
-    """Shows basic usage of the Google Admin SDK Directory API.
-
-    Creates a Google Admin SDK API service object and outputs a list of first
-    10 users in the domain.
-    """
     print('Creating user in Google Apps')
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
