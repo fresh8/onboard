@@ -1,0 +1,9 @@
+script_host:
+  build: .
+  # command: python app.py
+  # ports:
+  #  - "5000:5000"
+  volumes:
+   - .:/code
+  tty: true
+  env_file: .env
