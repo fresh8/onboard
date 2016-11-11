@@ -140,17 +140,24 @@ def main():
 
     do_gmail = input('Create Gmail account (y/n): ').strip()
     if (do_gmail == 'y'):
-        first_name = input('Enter employee first name: ').strip()
-        last_name = input('Enter employee last name: ').strip()
-        temporary_password = input('Enter temporary password: ').strip()
+        first_name = input('Enter employee first name: ')
+        first_name = first_name.strip()
 
-    do_github = input('Add Github account to org (y/n): ').strip()
-    if (do_gmail == 'y'):
-        github_username = input('Enter employee Github username: ').strip()
+        last_name = input('Enter employee last name: ')
+        last_name = last_name.strip()
 
-    do_trello = input('Add Trello account to org (y/n): ').strip()
+        temporary_password = input('Enter temporary password: ')
+        temporary_password = temporary_password.strip()
+
+    do_github = input('Add Github account to org (y/n): ')
+    if (do_github == 'y'):
+        github_username = input('Enter employee Github username: ')
+        github_username = github_username.strip()
+
+    do_trello = input('Add Trello account to org (y/n): ')
     if (do_trello == 'y'):
-        trello_username = input('Enter employee Trello username: ').strip()
+        trello_username = input('Enter employee Trello username: ')
+        trello_username = trello_username.strip()
 
     if (
             first_name != '' and
