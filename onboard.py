@@ -144,7 +144,7 @@ def invite_to_slack(first_name, last_name, email_address):
     print(response.text)
 
 
-def invite_to_jira(first_name, last_name, email_address):
+def invite_to_jira(first_name, last_name, email_address, temporary_password):
     print('Inviting %s %s (%s) to Jira' % (first_name, last_name, email_address))
     headers = {'Content-Type': 'application/json'}
     body = json.dumps({
@@ -162,6 +162,7 @@ def invite_to_jira(first_name, last_name, email_address):
 
     body = json.dumps({
         'name': email_address,
+        'password': temporary_password,
         'emailAddress': email_address,
         'displayName': first_name + ' ' + last_name,
         'applicationKeys': [
@@ -170,6 +171,14 @@ def invite_to_jira(first_name, last_name, email_address):
     })
 
     url = JIRA_URL + '/rest/api/2/user'
+    response = requests.post(url, body, headers=headers, cookies=cookies)
+    print(response.text)
+
+    body = json.dumps({
+        'name': email_address
+    })
+
+    url = JIRA_URL + '/rest/api/2/group/user?groupname=jira-software-users'
     response = requests.post(url, body, headers=headers, cookies=cookies)
     print(response.text)
 
@@ -258,7 +267,7 @@ def main():
             invite_to_slack(first_name, last_name, google_user['primaryEmail'])
 
         if (do_jira == 'y'):
-            invite_to_jira(first_name, last_name, google_user['primaryEmail'])
+            invite_to_jira(first_name, last_name, google_user['primaryEmail'], temporary_password)
 
     if (github_username != '' and do_github == 'y'):
         invite_to_github_org(github_username)
