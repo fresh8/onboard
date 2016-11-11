@@ -1,6 +1,7 @@
 from __future__ import print_function
 import httplib2
 import os
+import json
 
 from urllib.parse import urlencode
 
@@ -32,6 +33,10 @@ TRELLO_KEY = os.environ['TRELLO_KEY']
 GITHUB_USER = os.environ['GITHUB_USER']
 GITHUB_KEY = os.environ['GITHUB_KEY']
 GITHUB_ORG = os.environ['GITHUB_ORG']
+
+JIRA_USER = os.environ['JIRA_USER']
+JIRA_PASSWORD = os.environ['JIRA_PASSWORD']
+JIRA_URL = os.environ['JIRA_URL']
 
 
 def get_credentials():
@@ -125,7 +130,7 @@ def add_to_google_groups(service, google_user):
 
 
 def invite_to_slack(first_name, last_name, email_address):
-    print('Inviting %s %s (%s) to Slack', first_name, last_name, email_address)
+    print('Inviting %s %s (%s) to Slack' % (first_name, last_name, email_address))
     query = {
         'token': SLACK_TOKEN,
         'email': email_address,
@@ -139,8 +144,38 @@ def invite_to_slack(first_name, last_name, email_address):
     print(response.text)
 
 
+def invite_to_jira(first_name, last_name, email_address):
+    print('Inviting %s %s (%s) to Jira' % (first_name, last_name, email_address))
+    headers = {'Content-Type': 'application/json'}
+    body = json.dumps({
+        'username': JIRA_USER,
+        'password': JIRA_PASSWORD
+    })
+
+    url = JIRA_URL + '/rest/auth/1/session'
+    response = requests.post(url, body, headers=headers)
+
+    cookies = {
+        'JSESSIONID': response.cookies['JSESSIONID'],
+        'atlassian.xsrf.token': response.cookies['atlassian.xsrf.token']
+    }
+
+    body = json.dumps({
+        'name': email_address,
+        'emailAddress': email_address,
+        'displayName': first_name + ' ' + last_name,
+        'applicationKeys': [
+            'jira-core'
+        ]
+    })
+
+    url = JIRA_URL + '/rest/api/2/user'
+    response = requests.post(url, body, headers=headers, cookies=cookies)
+    print(response.text)
+
+
 def invite_to_trello_org(trello_username):
-    print('Inviting %s to Trello org %s', trello_username, TRELLO_ORG)
+    print('Inviting %s to Trello org %s' % (trello_username, TRELLO_ORG))
     query = {
         'token': TRELLO_TOKEN,
         'key': TRELLO_KEY,
@@ -157,7 +192,7 @@ def invite_to_trello_org(trello_username):
 
 
 def invite_to_github_org(github_username):
-    print('Inviting %s to Github org %s', github_username, GITHUB_ORG)
+    print('Inviting %s to Github org %s' % (github_username, GITHUB_ORG))
     headers = {'Accept': 'application/vnd.github.v3+json'}
 
     url = 'https://' + GITHUB_USER + ':' + GITHUB_KEY + '@api.github.com/orgs/'
@@ -188,6 +223,7 @@ def main():
 
         do_google_groups = input('Invite new user to Google groups (y/n): ')
         do_slack = input('Invite new user to Slack (y/n): ')
+        do_jira = input('Invite new user to Jira (y/n): ')
 
     do_github = input('Add Github account to org (y/n): ')
     if (do_github == 'y'):
@@ -220,6 +256,9 @@ def main():
 
         if (do_slack == 'y'):
             invite_to_slack(first_name, last_name, google_user['primaryEmail'])
+
+        if (do_jira == 'y'):
+            invite_to_jira(first_name, last_name, google_user['primaryEmail'])
 
     if (github_username != '' and do_github == 'y'):
         invite_to_github_org(github_username)
