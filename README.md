@@ -2,6 +2,15 @@
 
 A quick way to get users into all the services they require.
 
+## Coverage
+
+* Google account creation
+* Adding to Google groups
+* Invitation to Slack
+* Invitation to Jira
+* Adding to Github org account
+* Adding to Trello org account
+
 ## Setup
 
 For setting up users in Google Apps, you will need to have a `client_secret.json` in the root directory. This can be obtained from the [Google Console](https://console.cloud.google.com/apis/credentials). Your Google account must also allow for API calls within the [Security section of the admin panel](https://admin.google.com/connected-ventures.com/AdminHome?fral=1#SecuritySettings:flyout=apimanagement).
