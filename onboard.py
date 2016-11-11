@@ -67,6 +67,7 @@ def create_google_user(first_name, last_name, temporary_password):
     Creates a Google Admin SDK API service object and outputs a list of first
     10 users in the domain.
     """
+    print('Creating user in Google Apps')
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('admin', 'directory_v1', http=http)
@@ -85,7 +86,6 @@ def create_google_user(first_name, last_name, temporary_password):
         "changePasswordAtNextLogin": True
       }
 
-    print('Creating user in Google Apps')
     results = service.users().insert(body=user_json).execute()
     print(results)
 
@@ -136,7 +136,6 @@ def invite_to_github_org(github_username):
 
 
 def main():
-
     # Defaults
     first_name = ''
     last_name = ''
