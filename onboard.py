@@ -29,6 +29,7 @@ APPLICATION_NAME = 'Onboard'
 SLACK_TOKEN = os.environ['SLACK_TOKEN']
 TRELLO_TOKEN = os.environ['TRELLO_TOKEN']
 TRELLO_KEY = os.environ['TRELLO_KEY']
+TRELLO_ORG = os.environ['TRELLO_ORG']
 
 GITHUB_USER = os.environ['GITHUB_USER']
 GITHUB_KEY = os.environ['GITHUB_KEY']
@@ -193,8 +194,7 @@ def invite_to_trello_org(trello_username):
 
     query_string = urlencode(query)
 
-    url = 'https://api.trello.com/1/organizations/' + TRELLO_ORG + '/members/'
-    + trello_username + '?' + query_string
+    url = 'https://api.trello.com/1/organizations/' + TRELLO_ORG + '/members/' + trello_username + '?' + query_string
 
     response = requests.put(url)
     print(response.text)
@@ -204,8 +204,7 @@ def invite_to_github_org(github_username):
     print('Inviting %s to Github org %s' % (github_username, GITHUB_ORG))
     headers = {'Accept': 'application/vnd.github.v3+json'}
 
-    url = 'https://' + GITHUB_USER + ':' + GITHUB_KEY + '@api.github.com/orgs/'
-    + GITHUB_ORG + '/memberships/' + github_username
+    url = 'https://' + GITHUB_USER + ':' + GITHUB_KEY + '@api.github.com/orgs/' + GITHUB_ORG + '/memberships/' + github_username
 
     response = requests.put(url, headers=headers)
     print(response.text)
