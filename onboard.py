@@ -15,8 +15,11 @@ from oauth2client.file import Storage
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+
 except ImportError:
     flags = None
+
+flags.noauth_local_webserver = True
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/admin-directory_v1-python-quickstart.json
@@ -60,7 +63,7 @@ def get_credentials():
         if flags:
             credentials = tools.run_flow(flow, store, flags)
         else:  # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
+            credentials = tools.run(flow, store, flags)
         print('Storing credentials to ' + credential_path)
     return credentials
 
